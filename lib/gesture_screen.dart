@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:hand_landmarker/hand_landmarker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'tflite_service.dart';
 import 'gesture_service.dart';
 import 'tts_service.dart';
 
@@ -16,7 +17,9 @@ class _GestureScreenState extends State<GestureScreen> {
   CameraController? _cameraController;
   HandLandmarkerPlugin? _plugin;
   final TTSService _ttsService = TTSService();
-  final GestureService _gestureService = GestureService();
+  final TFLiteService _tfliteService = TFLiteService();
+  final GestureService _gestureService = GestureService(); // fallback
+  bool _useTFLite = false;
 
   String _recognizedText = "Initializing...";
   bool _isVoiceEnabled = true;
@@ -64,6 +67,16 @@ class _GestureScreenState extends State<GestureScreen> {
     try {
       await _cameraController!.initialize();
 
+      // Load the TFLite model (fall back to heuristics on failure)
+      try {
+        await _tfliteService.loadModel();
+        _useTFLite = true;
+        debugPrint('TFLite model loaded successfully');
+      } catch (e) {
+        _useTFLite = false;
+        debugPrint('TFLite load failed, falling back to heuristics: $e');
+      }
+
       // Start the camera image stream and process each frame
       await _cameraController!.startImageStream(_processCameraImage);
 
@@ -90,8 +103,13 @@ class _GestureScreenState extends State<GestureScreen> {
         _cameraController!.description.sensorOrientation,
       );
 
-      // Pass detected hands to our gesture classification service
-      final gesture = _gestureService.detectGesture(hands);
+      // Classify gesture using TFLite ML model or heuristic fallback
+      String gesture;
+      if (_useTFLite && hands.isNotEmpty) {
+        gesture = _tfliteService.classify(hands.first.landmarks);
+      } else {
+        gesture = _gestureService.detectGesture(hands);
+      }
       _onGestureDetected(gesture);
     } catch (e) {
       debugPrint('Error detecting landmarks: $e');
@@ -117,6 +135,7 @@ class _GestureScreenState extends State<GestureScreen> {
     _cameraController?.stopImageStream();
     _cameraController?.dispose();
     _plugin?.dispose();
+    _tfliteService.dispose();
     _ttsService.stop();
     super.dispose();
   }
