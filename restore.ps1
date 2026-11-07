@@ -2,8 +2,8 @@
 $tag = "data-backup-2026-11-07"
 $repo = "vaibhav7087/gesture_detection"
 $entries = @(
-  @{ file = 'app-debug.apk'; rel = 'build\app\outputs\apk\debug\app-debug.apk'; chunks = @('app-debug.apk'); sha256 = 'd13bb58aed7d83372002c7a99c3ab347ec8657573e5adb04ac21e127b9b120f3' }
-  @{ file = 'app-debug.apk'; rel = 'build\app\outputs\apk\debug\app-debug.apk'; chunks = @('app-debug.apk'); sha256 = 'd13bb58aed7d83372002c7a99c3ab347ec8657573e5adb04ac21e127b9b120f3' }
+  @{ file = 'app-debug.apk'; rel = 'build\app\outputs\apk\debug\app-debug.apk'; chunks = @('app-debug.apk'); sha256 = 'd13bb58aed7d83372002c7a99c3ab347ec8657573e5adb04ac21e127b9b120f3' },
+  @{ file = 'app-debug.apk'; rel = 'build\app\outputs\flutter-apk\app-debug.apk'; chunks = @('app-debug.apk'); sha256 = 'd13bb58aed7d83372002c7a99c3ab347ec8657573e5adb04ac21e127b9b120f3' }
 )
 $dl = Join-Path $PSScriptRoot "restore_download"
 New-Item -ItemType Directory -Force -Path $dl | Out-Null
@@ -29,3 +29,4 @@ foreach ($e in $entries) {
   Write-Host "OK $($e.file)"
 }
 Write-Host "restore complete"
+
